@@ -1,0 +1,1 @@
+const r=require("express").Router(),c=require("../controllers/authController");r.post("/register",c.registerPassenger);r.post("/login",c.loginPassenger);r.post("/forgot-password",c.forgotPassword);r.post("/reset-password",c.resetPassword);module.exports=r;

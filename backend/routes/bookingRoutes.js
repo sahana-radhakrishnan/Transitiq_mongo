@@ -1,0 +1,1 @@
+const r=require("express").Router(),auth=require("../middleware/authMiddleware"),c=require("../controllers/bookingController"),x=require("../controllers/cancellationController");r.post("/",auth,c.createBooking);r.post("/:booking_id/cancel",auth,x.cancelBooking);module.exports=r;

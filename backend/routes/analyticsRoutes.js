@@ -1,0 +1,1 @@
+const r=require("express").Router();r.get("/",require("../controllers/analyticsController").getDashboardAnalytics);module.exports=r;

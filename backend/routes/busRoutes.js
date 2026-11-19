@@ -1,0 +1,1 @@
+const r=require("express").Router();r.get("/search",require("../controllers/busController").searchBuses);module.exports=r;

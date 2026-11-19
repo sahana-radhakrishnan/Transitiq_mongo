@@ -1,0 +1,16 @@
+require("dotenv").config();
+const express=require("express"),cors=require("cors"),connectDB=require("./config/db");
+const app=express();
+app.use(cors({origin:(origin,cb)=>{const allowed=(process.env.CLIENT_URL||"").split(",").map(x=>x.trim()).filter(Boolean);if(!origin||allowed.includes(origin)||process.env.NODE_ENV!=="production")return cb(null,true);return cb(new Error("CORS origin not allowed"));},credentials:true}));
+app.use(express.json());
+app.get("/api/health",(req,res)=>res.json({status:"success",server:"TRANSITIQ",database:require("mongoose").connection.name||"MongoDB",message:"Database is connected successfully!"}));
+app.use("/api/auth",require("./routes/authRoutes"));
+app.use("/api/buses",require("./routes/busRoutes"));
+app.use("/api/seats",require("./routes/seatRoutes"));
+app.use("/api/bookings",require("./routes/bookingRoutes"));
+app.use("/api/analytics",require("./routes/analyticsRoutes"));
+app.use("/api/admin",require("./routes/adminRoutes"));
+app.get("/api/auth/profile",require("./middleware/authMiddleware"),(req,res)=>res.json({status:"success",message:"Authenticated successfully!",user:{user_id:req.user.user_id,role:req.user.role}}));
+app.use((err,req,res,next)=>{console.error(err);res.status(500).json({status:"error",message:"Internal server error."});});
+const PORT=process.env.PORT||3000;
+connectDB().then(()=>app.listen(PORT,()=>console.log(`TRANSITIQ API running on port ${PORT}`))).catch(e=>{console.error("MongoDB connection failed:",e.message);process.exit(1);});

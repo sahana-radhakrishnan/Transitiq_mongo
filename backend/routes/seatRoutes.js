@@ -1,0 +1,1 @@
+const r=require("express").Router();r.get("/:schedule_id",require("../controllers/seatController").getSeatAvailability);module.exports=r;
