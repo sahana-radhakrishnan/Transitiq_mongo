@@ -2,6 +2,58 @@ const mongoose=require("mongoose"),crypto=require("crypto");
 const Schedule=require("../models/Schedule"),Bus=require("../models/Bus"),Booking=require("../models/Booking");
 const {runBookingDFA}=require("../dfa/bookingDFA");
 const SeatReservation=require("../models/SeatReservation");
+exports.getMyBookings = async (req, res) => {
+    try {
+        const bookings = await Booking.find({
+            user_id: req.user.user_id
+        })
+        .sort({ createdAt: -1 })
+        .populate({
+            path: "schedule_id",
+            populate: [
+                { path: "bus_id", select: "bus_name bus_number bus_type" },
+                { path: "route_id", select: "source_city destination_city distance_km" }
+            ]
+        })
+        .lean();
+
+        const result = bookings.map(booking => {
+            const schedule = booking.schedule_id;
+
+            return {
+                booking_id: booking._id,
+                booking_reference: booking.booking_reference,
+                seat_ids: booking.seat_ids || [],
+                cancelled_seat_ids: booking.cancelled_seat_ids || [],
+                total_amount: booking.total_amount,
+                booking_status: booking.booking_status,
+                payment_status: booking.payment_status,
+                createdAt: booking.createdAt,
+                schedule_id: schedule?._id || null,
+                schedule: schedule ? {
+                    departure_datetime: schedule.departure_datetime,
+                    arrival_datetime: schedule.arrival_datetime,
+                    fare: schedule.fare,
+                    bus: schedule.bus_id,
+                    route: schedule.route_id
+                } : null
+            };
+        });
+
+        res.json({
+            status: "success",
+            count: result.length,
+            bookings: result
+        });
+
+    } catch (error) {
+        console.error("Passenger bookings error:", error);
+        res.status(500).json({
+            status: "error",
+            message: "Unable to retrieve your bookings."
+        });
+    }
+};
 exports.createBooking=async(req,res)=>{
  const {schedule_id,seat_ids}=req.body,user_id=req.user.user_id;
  if(!mongoose.isValidObjectId(schedule_id)||!Array.isArray(seat_ids)||!seat_ids.length||!seat_ids.every(x=>Number.isInteger(Number(x))&&Number(x)>0))return res.status(400).json({status:"error",message:"Valid schedule ID and seat IDs are required."});
