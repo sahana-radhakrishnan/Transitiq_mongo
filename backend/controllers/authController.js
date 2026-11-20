@@ -17,7 +17,13 @@ exports.loginPassenger=async(req,res)=>{
   if(!user||!(await bcrypt.compare(password,user.password_hash)))return res.status(401).json({status:"error",message:"Invalid email or password."});
   const token=jwt.sign({user_id:user._id.toString(),role:user.role},process.env.JWT_SECRET,{expiresIn:"1d"});
   res.json({status:"success",message:"Login successful!",token,user:{user_id:user._id,name:user.name,email:user.email,phone:user.phone,role:user.role}});
- }catch(e){res.status(500).json({status:"error",message:"Login failed."});}
+  } catch(e) {
+  console.error("LOGIN ERROR:", e);
+  res.status(500).json({
+   status: "error",
+   message: "Login failed."
+  });
+ }
 };
 exports.forgotPassword=async(req,res)=>{
  try{
